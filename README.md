@@ -83,6 +83,12 @@ Navigate to the project directory:
 cd Coral-GitClone-Agent
 ```
 
+**To run crewai agent, please switch to this branch:**
+```bash
+git checkout coral-server-crewai
+```
+If your multi-agents system includes crewai agent, **ALL** agents should be run on this server!
+
 Install `uv`:
 ```bash
 pip install uv
