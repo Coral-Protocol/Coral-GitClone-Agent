@@ -140,7 +140,7 @@ The PR was successfully checked out. Local repository path: /home/xinxing/corali
 
 </details>
 
-### Creator details
+## Creator details
 
 * Name: Xinxing
 * Affiliation: Coral Protocol
