@@ -1,8 +1,8 @@
-### Responsibility
+## Responsibility
 
 Git clone agent can help you clone a specific repository to your local machine using the git clone command, check out the branch corresponding to a particular pull request, and let you know the local project path—all by simply providing the repository name and PR number.
 
-### Details
+## Details
 
 * Framework: CrewAI
 * Tools used: Git CLI Tool, Coral Server Tools
