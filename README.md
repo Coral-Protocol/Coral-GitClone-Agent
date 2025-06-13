@@ -13,52 +13,14 @@ The GitClone Agent automates repository cloning, branch checkout for pull reques
 
 - **License**: MIT
 
-## Use the Agent
+## Use the Agent  
 
-### 1. Run Coral Server
-<details>
+### 1. Clone & Install Dependencies
 
-Ensure that the [Coral Server](https://github.com/Coral-Protocol/coral-server) is running on your system. In a new terminal, clone the repository:
 
-```bash
-# Clone the Coral Server repository
-git clone https://github.com/Coral-Protocol/coral-server.git
+<details>  
 
-# Navigate to the project directory
-cd coral-server
-
-# Run the server
-./gradlew run
-```
-</details>
-
-### 2. Run [Interface Agent](https://github.com/Coral-Protocol/Coral-Interface-Agent)
-<details>
-
-The Interface Agent is required to interact with the GitClone Agent. In a new terminal, clone the repository:
-
-```bash
-# Clone the Interface Agent repository
-git clone https://github.com/Coral-Protocol/Coral-Interface-Agent.git
-
-# Navigate to the project directory
-cd Coral-Interface-Agent
-
-# Install `uv`:
-pip install uv
-
-# Install dependencies from `pyproject.toml` using `uv`:
-uv sync
-
-# Run the agent using `uv`:
-uv run python 0-langchain-interface.py
-```
-</details>
-
-### 3. Run GitClone Agent
-<details>
-
-In a new terminal, clone the repository:
+Ensure that the [Coral Server](https://github.com/Coral-Protocol/coral-server) is running on your system. If you are trying to run Open Deep Research agent and require an input, you can either create your agent which communicates on the coral server or run and register the [Interface Agent](https://github.com/Coral-Protocol/Coral-Interface-Agent) on the Coral Server.  
 
 ```bash
 # Clone the GitClone Agent repository
@@ -89,7 +51,7 @@ cp -r utils\sse.py .venv\Lib\site-packages\mcp\client\sse.py
 ```
 </details>
 
-### 4. Configure Environment Variables
+### 2. Configure Environment Variables
 <details>
 
 Get the API Key:
@@ -104,7 +66,7 @@ Add your API keys and any other required environment variables to the .env file.
 
 </details>
 
-### 5. Run Agent
+### 3. Run Agent
 <details>
 
 Run the agent using `uv`:
@@ -113,7 +75,7 @@ uv run 1-crewai-GitCloneAgent.py
 ```
 </details>
 
-### 6. Example
+### 4. Example
 <details>
 
 ```bash
