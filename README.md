@@ -41,14 +41,6 @@ uv sync
 ```
 This command will read the `pyproject.toml` file and install all specified dependencies in a virtual environment managed by `uv`.
 
-Copy the client sse.py from utils to mcp package (Linux/Mac):
-```bash
-cp -r utils/sse.py .venv/lib/python3.10/site-packages/mcp/client/sse.py
-```
-OR for Windows:
-```bash
-cp -r utils\sse.py .venv\Lib\site-packages\mcp\client\sse.py
-```
 </details>
 
 ### 2. Configure Environment Variables
