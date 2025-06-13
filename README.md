@@ -1,153 +1,131 @@
-## Responsibility
+## [Coral GitClone Agent](https://github.com/Coral-Protocol/Coral-GitClone-Agent)
 
-Git clone agent can help you clone a specific repository to your local machine using the git clone command, check out the branch corresponding to a particular pull request, and let you know the local project path—all by simply providing the repository name and PR number.
+The GitClone Agent helps you clone a specific repository to your local machine using the git clone command, check out the branch corresponding to a particular pull request, and lets you know the local project path—all by simply providing the repository name and PR number.
+
+## Responsibility
+The GitClone Agent automates repository cloning, branch checkout for pull requests, and provides local project paths, streamlining codebase setup for development and review.
 
 ## Details
+- **Framework**: CrewAI
+- **Tools used**: Git CLI Tool, Coral Server Tools
+- **AI model**: OpenAI GPT-4.1
+- **Date added**: 02/05/25
 
-* Framework: CrewAI
-* Tools used: Git CLI Tool, Coral Server Tools
-* AI model: OpenAI GPT-4.1
-* Date added: 02/05/25
-* Licence: MIT
+- **License**: MIT
 
 ## Use the Agent
 
-### 1. Clone & Install Dependencies
-
-Run [Interface Agent](https://github.com/Coral-Protocol/Coral-Interface-Agent)
+### 1. Run Coral Server
 <details>
 
-
-If you are trying to run Open Deep Research agent and require an input, you can either create your agent which communicates on the coral server or run and register the Interface Agent on the Coral Server. In a new terminal clone the repository:
-
+Ensure that the [Coral Server](https://github.com/Coral-Protocol/coral-server) is running on your system. In a new terminal, clone the repository:
 
 ```bash
-git clone https://github.com/Coral-Protocol/Coral-Interface-Agent.git
-```
-Navigate to the project directory:
-```bash
-cd Coral-Interface-Agent
-```
+# Clone the Coral Server repository
+git clone https://github.com/Coral-Protocol/coral-server.git
 
-Install `uv`:
-```bash
-pip install uv
-```
-Install dependencies from `pyproject.toml` using `uv`:
-```bash
-uv sync
-```
+# Navigate to the project directory
+cd coral-server
 
-Configure API Key
-```bash
-export OPENAI_API_KEY=
+# Run the server
+./gradlew run
 ```
-
-Run the agent using `uv`:
-```bash
-uv run python 0-langchain-interface.py
-```
-
 </details>
 
-Agent Installation
-
+### 2. Run [Interface Agent](https://github.com/Coral-Protocol/Coral-Interface-Agent)
 <details>
-   
-Clone the repository:
-```bash
-git clone https://github.com/Coral-Protocol/Coral-GitClone-Agent.git
-```
 
-Navigate to the project directory:
-```bash
-cd Coral-GitClone-Agent
-```
+The Interface Agent is required to interact with the GitClone Agent. In a new terminal, clone the repository:
 
-**To run crewai agent, please switch to this branch:**
 ```bash
-git checkout coral-server-crewai
-```
-If your multi-agents system includes crewai agent, **ALL** agents should be run on this server!
+# Clone the Interface Agent repository
+git clone https://github.com/Coral-Protocol/Coral-Interface-Agent.git
 
-Install `uv`:
-```bash
+# Navigate to the project directory
+cd Coral-Interface-Agent
+
+# Install `uv`:
 pip install uv
-```
 
-Install dependencies from `pyproject.toml` using `uv`:
+# Install dependencies from `pyproject.toml` using `uv`:
+uv sync
+
+# Run the agent using `uv`:
+uv run python 0-langchain-interface.py
+```
+</details>
+
+### 3. Run GitClone Agent
+<details>
+
+In a new terminal, clone the repository:
+
 ```bash
+# Clone the GitClone Agent repository
+git clone https://github.com/Coral-Protocol/Coral-GitClone-Agent.git
+
+# Navigate to the project directory
+cd Coral-GitClone-Agent
+
+# To run crewai agent, please switch to this branch:
+git checkout coral-server-crewai
+# If your multi-agents system includes crewai agent, ALL agents should be run on this server!
+
+# Install `uv`:
+pip install uv
+
+# Install dependencies from `pyproject.toml` using `uv`:
 uv sync
 ```
-
 This command will read the `pyproject.toml` file and install all specified dependencies in a virtual environment managed by `uv`.
 
-Copy the client sse.py from utils to mcp package
+Copy the client sse.py from utils to mcp package (Linux/Mac):
 ```bash
 cp -r utils/sse.py .venv/lib/python3.10/site-packages/mcp/client/sse.py
 ```
-
-OR Copy this for windows
+OR for Windows:
 ```bash
 cp -r utils\sse.py .venv\Lib\site-packages\mcp\client\sse.py
 ```
-
 </details>
 
-
-### 2. Configure Environment Variables
-
+### 4. Configure Environment Variables
 <details>
 
-Copy the example file and update it with your credentials:
+Get the API Key:
+[OpenAI](https://platform.openai.com/api-keys)
+
 
 ```bash
-cp .env.example .env
+cp -r .env.example .env
 ```
 
-Required environment variables:
-
-* `OPENAI_API_KEY`
-
-* **OPENAI_API_KEY:**
-  Sign up at [platform.openai.com](https://platform.openai.com/), go to “API Keys” under your account, and click “Create new secret key.”
+Add your API keys and any other required environment variables to the .env file.
 
 </details>
 
-### 3. Run Agent
-
+### 5. Run Agent
 <details>
 
 Run the agent using `uv`:
-
 ```bash
 uv run 1-crewai-GitCloneAgent.py
 ```
-
 </details>
 
-### 4. Example
-
+### 6. Example
 <details>
 
-Input:
-
-Send message to the interface agent:
-
 ```bash
+# Input:
 Please fetch the code of '2' PR in repo 'renxinxing123/camel-software-testing'.
-```
 
-Output:
-
-```bash
+# Output:
 The PR was successfully checked out. Local repository path: /home/xinxing/coraliser-/coral_examples/github-repo-understanding+unit_test_advisor/camel-software-testing
 ```
-
 </details>
 
-## Creator details
-
-* Name: Xinxing
-* Affiliation: Coral Protocol
-* Contact: [Discord](https://discord.com/invite/Xjm892dtt3)
+## Creator Details
+- **Name**: Xinxing
+- **Affiliation**: Coral Protocol
+- **Contact**: [Discord](https://discord.com/invite/Xjm892dtt3)
