@@ -23,7 +23,7 @@ load_dotenv()
 print("Environment variables loaded")
 
 # MCP Server configuration
-base_url = "http://localhost:5555/devmode/exampleApplication/privkey/session1/sse"
+base_url = os.getenv("CORAL_SERVER_URL")
 params = {
     "waitForAgents": 1,
     "agentId": "gitclone_agent",
