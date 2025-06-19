@@ -3,7 +3,7 @@
 The GitClone Agent helps you clone a specific repository to your local machine using the git clone command, check out the branch corresponding to a particular pull request, and lets you know the local project path—all by simply providing the repository name and PR number.
 
 ## Responsibility
-The GitClone Agent automates repository cloning, branch checkout for pull requests, and provides local project paths, streamlining codebase setup for development and review.
+The GitClone Agent automates repository cloning, branch checkout for pull requests, and provides local project paths, streamlining codebase setup for development and review
 
 ## Details
 - **Framework**: CrewAI
