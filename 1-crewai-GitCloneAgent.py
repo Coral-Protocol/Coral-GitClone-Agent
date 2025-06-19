@@ -23,11 +23,13 @@ load_dotenv()
 print("Environment variables loaded")
 
 # MCP Server configuration
-base_url = os.getenv("CORAL_SERVER_URL")
+base_url = os.getenv("CORAL_SSE_URL")
+agentID = os.getenv("CORAL_AGENT_ID")
+
 params = {
-    "waitForAgents": 1,
-    "agentId": "gitclone_agent",
-    "agentDescription": """I am responsible for cloning GitHub repositories and checking out branches associated with specific pull requests, 
+    # "waitForAgents": 1,
+    "agentId": agentID,
+    "agentDescription": """An agent responsible for cloning GitHub repositories and checking out branches associated with specific pull requests, 
                            only call me when you need to execute some local opperation. 
                            You should let me know the repo name and the pr number, 
                            I will let you know the local root path of the project"""
