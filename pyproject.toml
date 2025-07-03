@@ -7,4 +7,5 @@ requires-python = ">=3.10"
 dependencies = [
     "crewai",
     "crewai-tools[mcp]",
+    "uv>=0.7.17",
 ]
