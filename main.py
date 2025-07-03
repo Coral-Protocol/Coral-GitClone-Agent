@@ -38,12 +38,6 @@ query_string = urllib.parse.urlencode(params)
 MCP_SERVER_URL = f"{base_url}?{query_string}"
 print(f"MCP Server URL: {MCP_SERVER_URL}")
 
-# Validate API keys
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY is not set in environment variables.")
-else:
-    print("OpenAI API key found")
-
 @tool("Checkout GitHub PR")
 def checkout_github_pr(repo_full_name: str, pr_number: int) -> str:
     """
