@@ -128,8 +128,8 @@ async def setup_components():
     # Load LLM
     llm = LLM(
         model=os.getenv("MODEL_NAME"),
-        temperature=os.getenv("MODEL_TEMPERATURE"),
-        max_tokens=os.getenv("MODEL_TOKEN"),
+        temperature=float(os.getenv("MODEL_TEMPERATURE")),
+        max_tokens=int(os.getenv("MODEL_TOKEN")),
         api_key=os.getenv("API_KEY"),
     )
 
