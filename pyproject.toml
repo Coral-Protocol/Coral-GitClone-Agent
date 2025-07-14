@@ -5,7 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "crewai",
-    "crewai-tools[mcp]",
+    "langchain==0.3.25",
+    "langchain-community==0.3.24",
+    "langchain-experimental==0.3.4",
+    "langchain-groq==0.3.4",
+    "langchain-mcp-adapters==0.1.7",
+    "langchain-openai==0.3.26",
+    "pygithub>=2.6.1",
     "uv>=0.7.17",
 ]

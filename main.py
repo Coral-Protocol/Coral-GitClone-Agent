@@ -1,44 +1,45 @@
+import asyncio
 import os
 import json
 import logging
+from typing import List
+from github import Github
+from github.ContentFile import ContentFile
+from github.GithubException import GithubException
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain.prompts import ChatPromptTemplate
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.tools import tool
+from langchain.chat_models import init_chat_model
+from dotenv import load_dotenv
+from anyio import ClosedResourceError
+import urllib.parse
 import subprocess
 import traceback
-import asyncio
-import urllib.parse
-from dotenv import load_dotenv
 
-from crewai import Agent, Task, Crew, LLM
-from crewai.tools import tool
-from crewai_tools import MCPServerAdapter
 
-# Setup logging with more detailed format
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Load environment variables
-load_dotenv()
-print("Environment variables loaded")
+load_dotenv(override=True)
 
-# MCP Server configuration
 base_url = os.getenv("CORAL_SSE_URL")
 agentID = os.getenv("CORAL_AGENT_ID")
 
 params = {
     # "waitForAgents": 1,
     "agentId": agentID,
-    "agentDescription": """An agent responsible for cloning GitHub repositories and checking out branches associated with specific pull requests, 
-                           only call me when you need to execute some local opperation. 
-                           You should let me know the repo name and the pr number, 
-                           I will let you know the local root path of the project"""
+    "agentDescription": """Responsible for cloning GitHub repositories and checking out branches associated with specific pull requests."""
 }
 query_string = urllib.parse.urlencode(params)
 MCP_SERVER_URL = f"{base_url}?{query_string}"
-print(f"MCP Server URL: {MCP_SERVER_URL}")
 
-@tool("Checkout GitHub PR")
+def get_tools_description(tools):
+    return "\n".join(f"Tool: {t.name}, Schema: {json.dumps(t.args).replace('{', '{{').replace('}', '}}')}" for t in tools)
+    
+@tool
 def checkout_github_pr(repo_full_name: str, pr_number: int) -> str:
     """
     Clone a GitHub repository and check out the branch associated with a specific pull request.
@@ -110,57 +111,10 @@ def checkout_github_pr(repo_full_name: str, pr_number: int) -> str:
         print(f"ERROR: {error_message}")
         traceback.print_exc()
         return f"Error: {error_message}"
-        
-async def get_tools_description(tools):
-    descriptions = []
-    for tool in tools:
-        tool_name = tool.name
-        schema = tool.args_schema.schema() if hasattr(tool, 'args_schema') and tool.args_schema else {}
-        arg_names = list(schema.get('properties', {}).keys()) if schema else []
-        description = tool.description or 'No description available'
-        schema_str = json.dumps(schema, default=str).replace('{', '{{').replace('}', '}}')
-        descriptions.append(
-            f"Tool: {tool_name}, Schema: {schema_str}"
-        )
-    return "\n".join(descriptions)
 
-async def setup_components():
-    # Load LLM
-    llm = LLM(
-        model=os.getenv("MODEL_NAME"),
-        temperature=float(os.getenv("MODEL_TEMPERATURE")),
-        max_tokens=int(os.getenv("MODEL_TOKEN")),
-        api_key=os.getenv("API_KEY"),
-    )
-
-    # MCP Server
-    serverparams = {"url": MCP_SERVER_URL,"timeout": 300, "sse_read_timeout": 300}
-    mcp_server_adapter = MCPServerAdapter(serverparams)
-    mcp_tools = mcp_server_adapter.tools
-    agent_tools = mcp_tools + [checkout_github_pr]
-
-    # GitClone Agent
-    gitclone_agent = Agent(
-        role="Git Clone Agent",
-        goal="Clone GitHub repositories and check out branches for specific Pull Requests. Continue running until a PR is successfully checked out.",
-        backstory="I am responsible for cloning GitHub repositories and checking out branches associated with specific pull requests. I will not stop until I successfully check out a PR.",
-        verbose=True,
-        allow_delegation=False,
-        llm=llm,
-        tools=agent_tools
-    )
-
-    return gitclone_agent, agent_tools
-
-async def main():
-
-    print("Initializing GitClone system...")
-    gitclone_agent, agent_tools = await setup_components()
-    tools_description = await get_tools_description(agent_tools)
-    print(tools_description)
-
-    task = Task(
-        description="""You are `gitclone_agent`, responsible for cloning a GitHub repository and checking out the branch for a specific pull request.
+async def create_repo_agent(client, tools):
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", f"""You are `gitclone_agent`, responsible for cloning a GitHub repository and checking out the branch for a specific pull request. Following these step and never finish the chain:
 
         1. Use `wait_for_mentions(timeoutMs=60000)` to wait for instructions from other agents.
         2. When a mention is received, record the `threadId` and `senderId`.
@@ -172,32 +126,68 @@ async def main():
         8. If the message format is invalid or incomplete, skip it silently.
         9. Do not create threads; always use the `threadId` from the mention.
         10. Wait 2 seconds and repeat from step 1.
-        These are the list of all tools: {tools_description}
-        """,
-        agent=gitclone_agent,
-        expected_output="Successfully checked out PR branch and provided the local repository path",
-        async_execution=True
+         
+        **Important: NEVER EVER end up the chain**
+        
+        Tools: {get_tools_description(tools)}"""),
+        ("placeholder", "{history}"),
+        ("placeholder", "{agent_scratchpad}")
+    ])
+
+    model = init_chat_model(
+        model=os.getenv("MODEL_NAME"),
+        model_provider=os.getenv("MODEL_PROVIDER"),
+        api_key=os.getenv("API_KEY"),
+        max_tokens=os.getenv("MODEL_TOKEN")
     )
 
-    crew = Crew(
-        agents=[gitclone_agent],
-        tasks=[task],
-        verbose=True,
-        enable_telemetry=False
-    )
 
+    agent = create_tool_calling_agent(model, tools, prompt)
+    return AgentExecutor(agent=agent, tools=tools, max_iterations=None ,verbose=True)
+
+async def main():
+    CORAL_SERVER_URL = f"{base_url}?{query_string}"
+    logger.info(f"Connecting to Coral Server: {CORAL_SERVER_URL}")
+
+    client = MultiServerMCPClient(
+        connections={
+            "coral": {
+                "transport": "sse",
+                "url": CORAL_SERVER_URL,
+                "timeout": 600,
+                "sse_read_timeout": 600,
+            }
+        }
+    )
+    logger.info("Coral Server Connection Established")
+
+    tools = await client.get_tools()
+    coral_tool_names = [
+        "list_agents",
+        "create_thread",
+        "add_participant",
+        "remove_participant",
+        "close_thread",
+        "send_message",
+        "wait_for_mentions",
+    ]
+    tools = [tool for tool in tools if tool.name in coral_tool_names]
+    tools += [checkout_github_pr]
+
+    logger.info(f"Tools Description:\n{get_tools_description(tools)}")
+
+    agent_executor = await create_repo_agent(client, tools)
 
     while True:
         try:
-            print("Kicking off crew execution")
-            result = crew.kickoff()
-            print(f"Crew execution completed with result: {result}")
+            logger.info("Starting new agent invocation")
+            await agent_executor.ainvoke({"agent_scratchpad": []})
+            logger.info("Completed agent invocation, restarting loop")
             await asyncio.sleep(1)
-
         except Exception as e:
-            logger.error(f"Error in GitClone main loop: {str(e)}", exc_info=True)
-            await asyncio.sleep(1)
+            logger.error(f"Error in agent loop: {str(e)}")
+            logger.error(traceback.format_exc())
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     asyncio.run(main())
-    print("GitClone Agent script completed")
