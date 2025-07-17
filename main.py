@@ -18,25 +18,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
-print("Environment variables loaded")
-
-# MCP Server configuration
-base_url = os.getenv("CORAL_SSE_URL")
-agentID = os.getenv("CORAL_AGENT_ID")
-
-params = {
-    # "waitForAgents": 1,
-    "agentId": agentID,
-    "agentDescription": """An agent responsible for cloning GitHub repositories and checking out branches associated with specific pull requests, 
-                           only call me when you need to execute some local opperation. 
-                           You should let me know the repo name and the pr number, 
-                           I will let you know the local root path of the project"""
-}
-query_string = urllib.parse.urlencode(params)
-MCP_SERVER_URL = f"{base_url}?{query_string}"
-print(f"MCP Server URL: {MCP_SERVER_URL}")
 
 @tool("Checkout GitHub PR")
 def checkout_github_pr(repo_full_name: str, pr_number: int) -> str:
@@ -124,7 +105,7 @@ async def get_tools_description(tools):
         )
     return "\n".join(descriptions)
 
-async def setup_components():
+async def setup_components(MCP_SERVER_URL):
     # Load LLM
     llm = LLM(
         model=os.getenv("MODEL_NAME"),
@@ -154,8 +135,28 @@ async def setup_components():
 
 async def main():
 
+    runtime = os.getenv("CORAL_ORCHESTRATION_RUNTIME", "devmode")
+
+    if runtime == "docker" or runtime == "executable":
+        base_url = os.getenv("CORAL_SSE_URL")
+        agentID = os.getenv("CORAL_AGENT_ID")
+    else:
+        load_dotenv()
+        base_url = os.getenv("CORAL_SSE_URL")
+        agentID = os.getenv("CORAL_AGENT_ID")
+
+    coral_params = {
+        "agentId": agentID,
+        "agentDescription": "An agent that takes the user's input and interacts with other agents to fulfill the request"
+    }
+
+    query_string = urllib.parse.urlencode(coral_params)
+
+    CORAL_SERVER_URL = f"{base_url}?{query_string}"
+    logger.info(f"Connecting to Coral Server: {CORAL_SERVER_URL}")
+
     print("Initializing GitClone system...")
-    gitclone_agent, agent_tools = await setup_components()
+    gitclone_agent, agent_tools = await setup_components(CORAL_SERVER_URL)
     tools_description = await get_tools_description(agent_tools)
     print(tools_description)
 
