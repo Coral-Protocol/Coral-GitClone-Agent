@@ -135,15 +135,12 @@ async def setup_components(MCP_SERVER_URL):
 
 async def main():
 
-    runtime = os.getenv("CORAL_ORCHESTRATION_RUNTIME", "devmode")
-
-    if runtime == "docker" or runtime == "executable":
-        base_url = os.getenv("CORAL_SSE_URL")
-        agentID = os.getenv("CORAL_AGENT_ID")
-    else:
+    runtime = os.getenv("CORAL_ORCHESTRATION_RUNTIME", None)
+    if runtime is None:
         load_dotenv()
-        base_url = os.getenv("CORAL_SSE_URL")
-        agentID = os.getenv("CORAL_AGENT_ID")
+
+    base_url = os.getenv("CORAL_SSE_URL")
+    agentID = os.getenv("CORAL_AGENT_ID")
 
     coral_params = {
         "agentId": agentID,
