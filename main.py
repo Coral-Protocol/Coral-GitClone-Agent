@@ -110,8 +110,8 @@ async def setup_components(MCP_SERVER_URL):
     llm = LLM(
         model=os.getenv("MODEL_NAME"),
         temperature=float(os.getenv("MODEL_TEMPERATURE")),
-        max_tokens=int(os.getenv("MODEL_TOKEN")),
-        api_key=os.getenv("API_KEY"),
+        max_tokens=int(os.getenv("MODEL_MAX_TOKENS")),
+        api_key=os.getenv("MODEL_API_KEY"),
     )
 
     # MCP Server
